@@ -1,0 +1,32 @@
+name: Claude Code
+
+on:
+  # Alguien comenta "@claude ..." en un issue o PR
+  issue_comment:
+    types: [created]
+  # Alguien asigna el issue a claude / le pone la etiqueta "claude"
+  issues:
+    types: [assigned, labeled]
+  # Comentarios en review de un PR
+  pull_request_review_comment:
+    types: [created]
+
+jobs:
+  claude:
+    if: |
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'issues' && github.event.action == 'assigned' && github.event.assignee.login == 'claude') ||
+      (github.event_name == 'issues' && github.event.action == 'labeled' && github.event.label.name == 'claude')
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+    steps:
+      - name: Claude resuelve el issue
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
